@@ -1,0 +1,248 @@
+<!doctype html>
+<html>
+<head>
+</head>
+<body>
+<canvas id="c" style="top: 0; left:0; position: absolute"></canvas>
+<script>
+var b = document.body, c = document.getElementById("c"), t = c.getContext("2d"), cos = Math.cos, sin = Math.sin;
+b.style.margin = 0;
+c.width = innerWidth;
+c.height = innerHeight;
+var f = 200, 
+vpX = c.width / 2, 
+vpY = c.height / 2, 
+p = [];
+
+
+
+var mX = vpX, mY = vpY;
+var dragX, dragY, dragging = false;
+var mouseX = 0, mouseY = 0;
+var sculpting = false;
+var sculpt_direction = 1;
+
+c.onmousemove = function(e){
+	if(dragging){
+	  mX = e.clientX + dragX;
+	  mY = e.clientY + dragY;
+	}
+	mouseX = e.clientX;
+	mouseY = e.clientY;
+}
+
+//90 deg = 157 ~ pi/2
+
+c.onmousedown = function(e){
+  if(e.button == 1){
+    dragging = true;
+    dragX = mX - e.clientX;
+    dragY =  mY - e.clientY;
+  }else if(e.button === 0){
+    sculpting = true;
+    sculpt_direction = 1;
+  }else if(e.button === 2){
+    sculpting = true;
+    sculpt_direction = -1;
+  }
+}
+
+c.onmouseup = function(e){
+  dragging = false;
+  sculpting = false;
+}
+
+c.oncontextmenu = function(e){
+  e.preventDefault();
+}
+
+
+p = [{x:0,y:0,z:0}, {x:10,y:0,z:0}, {x:0,y:10,z:0}, {x:0,y:0,z:10}];
+
+var Res = 50, Radius = 100;
+for(var x = - Math.PI/2; x <  Math.PI/2; x += Math.PI / Res){
+  var r =  Radius * Math.cos(x);
+  var z = Radius * Math.sin(x);
+  for(var y = 0; y < 2 * Math.PI; y += Math.PI / Res){
+    var a = r * Math.cos(y);
+    var b = r * Math.sin(y);
+    p.push({
+      x: z,
+      y: b,
+      z: a
+    })
+  }
+}
+
+
+var zoom = 1;
+
+c.onmousewheel = function(e){
+  if(e.wheelDelta > 0){
+    zoom *= 1.1;
+  }else if(e.wheelDelta < 0){
+    zoom /= 1.1;
+  }
+}
+
+
+function dist(dx, dy){
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+var selected = [];
+var toolsize = 20;
+
+
+setInterval(function(){
+  var aY =  1e-2 * (mX - vpX), 
+			cY = cos(aY), 
+			sY = sin(aY),
+			aX = 1e-2 *(mY - vpY), 
+			cX = cos(aX), 
+			sX = sin(aX),
+			point, S, z1;
+  for(var i = p.length; i--;) {
+	  point = p[i];
+		var z1 = point.z * cY + point.x * sY; 
+		var x = point.x * cY - point.z * sY;
+		var z = z1 * cX + point.y * sX;
+		var y = point.y * cX - z1 * sX;
+	
+	  S = zoom * f / (f + z);
+	  point._z = S;
+	  point._x = vpX + x * S;
+	  point._y = vpY + y * S
+  }
+  t.clearRect(0, 0, c.width, c.height);
+  
+  selected = [];
+  t.beginPath();
+  
+  t.fillStyle = 'rgba(100,100,225,.5)';
+  t.arc(p[0]._x, p[0]._y, 3, 0, Math.PI*2, true);
+  t.fill();
+
+  t.lineWidth = 2;
+    
+  t.beginPath();
+  t.moveTo(p[0]._x, p[0]._y);
+  t.lineTo(p[1]._x, p[1]._y);
+  t.strokeStyle = 'red';
+  t.stroke();
+  
+  t.beginPath();
+  t.moveTo(p[0]._x, p[0]._y);
+  t.lineTo(p[2]._x, p[2]._y);
+  t.strokeStyle = 'green';
+  t.stroke();
+  
+  t.beginPath();
+  t.moveTo(p[0]._x, p[0]._y);
+  t.lineTo(p[3]._x, p[3]._y);
+  t.strokeStyle = 'blue';
+
+  t.stroke();
+  
+  
+  t.beginPath();
+  
+  t.moveTo(p[4]._x, p[4]._y);
+  for(var l = p.length,i=5;i<l;i++){
+		if(p[i] && !isNaN(p[i]._x) && !isNaN(p[i]._y)){
+			
+			var lineWidth =  1/zoom * (p[i]._z) - 1;
+
+		  if(dist(p[i]._x - mouseX, p[i]._y - mouseY) < toolsize * zoom){
+        t.strokeStyle = 'orange';
+        lineWidth *= 2;
+        selected.push(i);
+      }else{
+        t.strokeStyle = "rgb(40,50,20)";
+      }
+			
+			if(lineWidth > 0){
+			
+			  t.beginPath();
+			  t.moveTo(p[i-1]._x, p[i-1]._y);
+			  
+			  
+			  t.lineTo(p[i]._x, p[i]._y);
+			  t.lineWidth = lineWidth;
+			
+
+			
+			  t.stroke();
+			  
+			}
+			
+    }
+	}
+	
+	
+	if(sculpting && selected.length){
+	  var sorted = selected.sort(function(a, b){
+	    return p[a]._z - p[b]._z;
+	  });
+	  
+	  
+	  var i = sorted.length
+	  var last = p[sorted[0]]._z;
+	  var foreground = [];
+	  var fg = false;
+	  for(var k = 0; k < i; k ++){
+	    var delta = Math.abs(last - p[sorted[k]]._z);
+	    //console.log(delta);
+	    if(delta > 0.01){
+	      fg = true;
+	    }
+	    if(fg){
+	      foreground.push(sorted[k]);
+	    }
+	    last = p[sorted[k]]._z;
+	  }
+	  
+	  var fgx = 0, fgy = 0, fgz = 0;
+	  for(var i = foreground.length; i--;){
+      fgx += p[foreground[i]].x;
+      fgy += p[foreground[i]].y;
+      fgz += p[foreground[i]].z;
+    }
+    
+    fgx /= foreground.length;
+    fgy /= foreground.length;
+    fgz /= foreground.length;
+    
+    var bgx = 0, bgy = 0, bgz = 0;
+    var bgl = sorted.length - foreground.length;
+    for(var i = bgl; i--;){
+      bgx += p[sorted[i]].x;
+      bgy += p[sorted[i]].y;
+      bgz += p[sorted[i]].z;
+    }
+    
+    bgx /= bgl;
+    bgy /= bgl;
+    bgz /= bgl;
+    
+    var dx = fgx - bgx, dy = fgy - bgy, dz = fgz - bgz;
+    
+    var theta = Math.acos(dz/Math.sqrt(dx*dx + dy*dy + dz*dz));
+    var phi = Math.atan2(dy, dx);
+    
+    var ndx = sculpt_direction * Math.sin(theta) * Math.cos(phi);
+    var ndy = sculpt_direction * Math.sin(theta) * Math.sin(phi);
+    var ndz = sculpt_direction * Math.cos(theta);
+    
+	  for(var i = foreground.length; i--;){
+      p[foreground[i]].x += ndx;
+      p[foreground[i]].y += ndy;
+      p[foreground[i]].z += ndz;
+    }
+    
+	}
+	
+},50); 
+</script>
+</body>
+</html>
