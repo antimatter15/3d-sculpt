@@ -1,9 +1,22 @@
 <!doctype html>
 <html>
 <head>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+</style>
 </head>
 <body>
 <canvas id="c" style="top: 0; left:0; position: absolute"></canvas>
+<div style="position:absolute;top:30px;left:10px">
+<input type="range" id="toolsize" value='20' min='1' max='100'>
+</div>
 <script>
 var b = document.body, c = document.getElementById("c"), t = c.getContext("2d"), cos = Math.cos, sin = Math.sin;
 b.style.margin = 0;
@@ -59,11 +72,11 @@ c.oncontextmenu = function(e){
 
 p = [{x:0,y:0,z:0}, {x:10,y:0,z:0}, {x:0,y:10,z:0}, {x:0,y:0,z:10}];
 
-var Res = 50, Radius = 100;
-for(var x = - Math.PI/2; x <  Math.PI/2; x += Math.PI / Res){
+var ResX = 60, ResY = 30, Radius = 100;
+for(var x = - Math.PI/2; x <  Math.PI/2; x += Math.PI / ResX){
   var r =  Radius * Math.cos(x);
   var z = Radius * Math.sin(x);
-  for(var y = 0; y < 2 * Math.PI; y += Math.PI / Res){
+  for(var y = 0; y < 2 * Math.PI; y += Math.PI / ResY){
     var a = r * Math.cos(y);
     var b = r * Math.sin(y);
     p.push({
@@ -91,11 +104,15 @@ function dist(dx, dy){
 }
 
 var selected = [];
-var toolsize = 20;
+
 
 var pause = false;
 setInterval(function(){
 if(pause) return;
+
+var toolsize = document.getElementById('toolsize').value;
+
+
   var aY =  1e-2 * (mX - vpX), 
 			cY = cos(aY), 
 			sY = sin(aY),
@@ -256,7 +273,7 @@ if(pause) return;
     }
     
 
-    var ml2 = Math.ceil(Math.pow(Radius * Math.PI / Res, 2));
+    var ml2 = Math.ceil(Math.pow(Radius * Math.PI / ResY, 2));
     console.log(ml2);
     for(var i = p.length-1; i-- > 4;){
       var lp = p[i+1];
@@ -276,13 +293,14 @@ if(pause) return;
         })
       }
       
-    }  
-
+    }
+    
     
     
 	}
 
     
+  t.fillText(p.length + ' points', 20, 20);
     
     
 	
