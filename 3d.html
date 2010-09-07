@@ -37,6 +37,16 @@ onresize = function(){
   c.width = innerWidth;
   c.height = innerHeight;
   
+  var nvpX = innerWidth/2;
+  var nvpY = innerHeight/2;
+  
+  mX -= vpX - nvpX;
+  mY -= vpY - nvpY;
+  
+  vpX = nvpX;
+  vpY = nvpY;
+  
+  lastmousemove = +new Date; //get it to render again
 
 }
 
@@ -89,7 +99,7 @@ var dragX, dragY, dragging = false;
 var mouseX = 0, mouseY = 0;
 var sculpting = false;
 var sculpt_direction = 1;
-var lastmousemove = Infinity;
+var lastmousemove = +new Date;
 
 c.onmousemove = function(e){
   lastmousemove = +new Date;
