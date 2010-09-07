@@ -14,8 +14,9 @@
 </head>
 <body>
 <canvas id="c" style="top: 0; left:0; position: absolute"></canvas>
-<div style="position:absolute;top:30px;left:10px">
-<input type="range" id="toolsize" value='20' min='1' max='100'>
+<div style="position:absolute;top:30px;left:20px">
+<input type="range" id="toolsize" value='20' min='1' max='100'><br>
+<input type="checkbox" checked id="undo">
 </div>
 <script>
 var b = document.body, c = document.getElementById("c"), t = c.getContext("2d"), cos = Math.cos, sin = Math.sin;
@@ -27,6 +28,52 @@ vpX = c.width / 2,
 vpY = c.height / 2, 
 p = [];
 
+
+var backups = [];
+var current_state = 0;
+
+function save(){
+  var backup = [];
+  var q = 1e3;
+  for(var i=0, l = p.length; i < l;i++){
+    backup.push(
+    Math.floor(p[i].x * q)/q,
+    Math.floor(p[i].y * q)/q,
+    Math.floor(p[i].z * q)/q
+    );
+  }
+  current_state = backups.length;
+  backups.push(backup.join(';'));
+}
+
+
+function loadState(version){
+  if(!backups[version]) return false;
+  var backup = backups[version].split(';');
+  if(backup.length % 3) return alert('backup is wrong size!');
+  
+  p = [];
+  for(var i=0,l = backup.length; i < l;i+=3){
+    p[i/3] = {
+      x: parseFloat(backup[i]),
+      y: parseFloat(backup[i+1]),
+      z: parseFloat(backup[i+2])
+    }
+  }
+  return true;
+}
+
+function undo(){
+  if(!loadState(--current_state)){
+    current_state++;
+  }
+}
+
+function redo(){
+  if(!loadState(++current_state)){
+    current_state--;
+  }
+}
 
 
 var mX = vpX, mY = vpY;
@@ -58,11 +105,39 @@ c.onmousedown = function(e){
     sculpting = true;
     sculpt_direction = -1;
   }
+  
+  if(document.getElementById('undo').checked && backups.length == 0){
+    save();
+  }
+}
+
+onkeydown = function(e){
+  if(e.ctrlKey || e.metaKey){ //ideally Ctrl and Cmd
+    if(e.keyCode == 90){ //Z
+      if(!e.shiftKey){
+        //undo
+        undo();
+      }else{
+        //redo
+        redo()
+      }
+    }else if(e.keyCode == 89){
+      //redo
+      redo();
+    }
+  }
 }
 
 c.onmouseup = function(e){
+
+  if(sculpting && document.getElementById('undo').checked){
+    save();
+  }
+  
   dragging = false;
   sculpting = false;
+  
+
 }
 
 c.oncontextmenu = function(e){
@@ -274,7 +349,7 @@ var toolsize = document.getElementById('toolsize').value;
     
 
     var ml2 = Math.ceil(Math.pow(Radius * Math.PI / ResY, 2));
-    console.log(ml2);
+    //console.log(ml2);
     for(var i = p.length-1; i-- > 4;){
       var lp = p[i+1];
       var cp = p[i];
@@ -300,9 +375,7 @@ var toolsize = document.getElementById('toolsize').value;
 	}
 
     
-  t.fillText(p.length + ' points', 20, 20);
-    
-    
+  t.fillText(p.length + ' points '+(current_state+1)+'/'+backups.length+' undo', 20, 20);
 	
 },50); 
 </script>
