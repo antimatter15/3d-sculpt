@@ -9,13 +9,14 @@
     -webkit-user-select: none;
     -moz-user-select: none;
     user-select: none;
+    overflow: hidden;
   }
 </style>
 </head>
 <body>
 <canvas id="c" style="top: 0; left:0; position: absolute"></canvas>
 <div style="position:absolute;top:30px;left:20px">
-<input type="range" id="toolsize" value='20' min='1' max='100'><br>
+<input type="range" id="toolsize" value='20' min='1' max='110'><br>
 <input type="checkbox" checked id="undo">
 </div>
 <script>
@@ -168,11 +169,12 @@ c.oncontextmenu = function(e){
 
 p = [{x:0,y:0,z:0}, {x:10,y:0,z:0}, {x:0,y:10,z:0}, {x:0,y:0,z:10}];
 
-var ResX = 60, ResY = 30, Radius = 100;
+var ResX = 60, ResY = 3, Radius = 100;
 for(var x = - Math.PI/2; x <  Math.PI/2; x += Math.PI / ResX){
   var r =  Radius * Math.cos(x);
   var z = Radius * Math.sin(x);
-  for(var y = 0; y < 2 * Math.PI; y += Math.PI / ResY){
+  console.log(r);
+  for(var y = 0; y < 2 * Math.PI; y += Math.PI / r * ResY){
     var a = r * Math.cos(y);
     var b = r * Math.sin(y);
     p.push({
