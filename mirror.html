@@ -169,13 +169,13 @@ c.oncontextmenu = function(e){
 
 p = [{x:0,y:0,z:0}, {x:10,y:0,z:0}, {x:0,y:10,z:0}, {x:0,y:0,z:10}];
 
-var ResX = 60, ResY = 3, Radius = 100;
-for(var x = - Math.PI/2; x <  Math.PI/2; x += Math.PI / ResX){
+var ResX = 70, ResY = 1, Radius = 100;
+for(var x = 0; x <  Math.PI/2; x += Math.PI / ResX){
 
   console.log(r);
   for(var y = 0; y < 2 * Math.PI; y += Math.PI / r * ResY){
-    var r =  Radius * Math.cos(x + (Math.PI/ResX) * y/Math.PI/2);
-    var z = Radius * Math.sin(x + (Math.PI/ResX) * y/Math.PI/2);
+    var r =  Radius * Math.cos(x);
+    var z = Radius * Math.sin(x);
   
   
     var a = r * Math.cos(y);
@@ -187,6 +187,9 @@ for(var x = - Math.PI/2; x <  Math.PI/2; x += Math.PI / ResX){
     })
   }
 }
+
+
+
 
 
 var zoom = 1;
@@ -225,44 +228,69 @@ setInterval(function(){
 			cX = cos(aX), 
 			sX = sin(aX),
 			point, S, z1;
-  for(var i = p.length; i--;) {
+			
+			
+  var rp = [];
+  var plen = p.length;
+  for(var i = 0; i < plen;i++) {
 	  point = p[i];
+	  rpoint = {};
+	  rp.push(rpoint);
+	  
+	  
 		var z1 = point.z * cY + point.x * sY; 
 		var x = point.x * cY - point.z * sY;
 		var z = z1 * cX + point.y * sX;
 		var y = point.y * cX - z1 * sX;
 	
 	  S = zoom * f / (f + z);
-	  point._z = S;
-	  point._x = vpX + x * S;
-	  point._y = vpY + y * S
+	  rpoint._z = S;
+	  rpoint._x = vpX + x * S;
+	  rpoint._y = vpY + y * S
   }
+  
+  for(var i = 0; i < plen;i++) {
+	  point = p[i];
+	  rpoint = {};
+	  rp.push(rpoint);
+	  
+		var z1 = point.z * cY + -point.x * sY; 
+		var x = -point.x * cY - point.z * sY;
+		var z = z1 * cX + point.y * sX;
+		var y = point.y * cX - z1 * sX;
+	
+	  S = zoom * f / (f + z);
+	  rpoint._z = S;
+	  rpoint._x = vpX + x * S;
+	  rpoint._y = vpY + y * S
+  }
+  
   t.clearRect(0, 0, c.width, c.height);
   
   selected = [];
   t.beginPath();
   
   t.fillStyle = 'rgba(100,100,225,.5)';
-  t.arc(p[0]._x, p[0]._y, 3, 0, Math.PI*2, true);
+  t.arc(rp[0]._x, rp[0]._y, 3, 0, Math.PI*2, true);
   t.fill();
 
   t.lineWidth = 2;
     
   t.beginPath();
-  t.moveTo(p[0]._x, p[0]._y);
-  t.lineTo(p[1]._x, p[1]._y);
+  t.moveTo(rp[0]._x, rp[0]._y);
+  t.lineTo(rp[1]._x, rp[1]._y);
   t.strokeStyle = 'red';
   t.stroke();
   
   t.beginPath();
-  t.moveTo(p[0]._x, p[0]._y);
-  t.lineTo(p[2]._x, p[2]._y);
+  t.moveTo(rp[0]._x, rp[0]._y);
+  t.lineTo(rp[2]._x, rp[2]._y);
   t.strokeStyle = 'green';
   t.stroke();
   
   t.beginPath();
-  t.moveTo(p[0]._x, p[0]._y);
-  t.lineTo(p[3]._x, p[3]._y);
+  t.moveTo(rp[0]._x, rp[0]._y);
+  t.lineTo(rp[3]._x, rp[3]._y);
   t.strokeStyle = 'blue';
 
   t.stroke();
@@ -271,14 +299,14 @@ setInterval(function(){
   t.beginPath();
   
   t.moveTo(p[4]._x, p[4]._y);
-  for(var l = p.length,i=5;i<l;i++){
-		if(p[i] && !isNaN(p[i]._x) && !isNaN(p[i]._y)){
+  for(var l = rp.length,i=5;i<l;i++){
+		if(rp[i] && !isNaN(rp[i]._x) && !isNaN(rp[i]._y)){
 			
-			var lineWidth =  1/zoom * (p[i]._z) - 1;
+			var lineWidth =  1/zoom * (rp[i]._z) - 1;
       
       //lineWidth = (lineWidth + 2)*(lineWidth + 2) - 6;
       
-		  if(dist(p[i]._x - mouseX, p[i]._y - mouseY) < toolsize * zoom){
+		  if(dist(rp[i]._x - mouseX, rp[i]._y - mouseY) < toolsize * zoom){
         if(sculpting){
           if(sculpt_direction > 0){
             t.strokeStyle = 'blue';
@@ -297,12 +325,12 @@ setInterval(function(){
 			if(lineWidth > 0){
 			
 			  t.beginPath();
-			  t.moveTo(p[i-1]._x, p[i-1]._y);
+			  t.moveTo(rp[i-1]._x, rp[i-1]._y);
 			  
-			  t.fillRect(p[i]._x - lineWidth * 2, p[i]._y - lineWidth * 2, lineWidth * 4, lineWidth * 4);
+			  t.fillRect(rp[i]._x - lineWidth * 2, rp[i]._y - lineWidth * 2, lineWidth * 4, lineWidth * 4);
 			  
 			  
-			  t.lineTo(p[i]._x, p[i]._y);
+			  t.lineTo(rp[i]._x, rp[i]._y);
 			  t.lineWidth = lineWidth
 			
 
@@ -317,16 +345,16 @@ setInterval(function(){
 	
 	if(sculpting && selected.length){
 	  var sorted = selected.sort(function(a, b){
-	    return p[a]._z - p[b]._z;
+	    return rp[a]._z - rp[b]._z;
 	  });
 	  
 	  
 	  var i = sorted.length
-	  var last = p[sorted[0]]._z;
+	  var last = rp[sorted[0]]._z;
 	  var foreground = [];
 	  var fg = false;
 	  for(var k = 0; k < i; k ++){
-	    var delta = Math.abs(last - p[sorted[k]]._z);
+	    var delta = Math.abs(last - rp[sorted[k]]._z);
 	    //console.log(delta);
 	    if(delta > 0.1){
 	      fg = true;
@@ -334,14 +362,14 @@ setInterval(function(){
 	    if(fg){
 	      foreground.push(sorted[k]);
 	    }
-	    last = p[sorted[k]]._z;
+	    last = rp[sorted[k]]._z;
 	  }
 	  
 	  var fgx = 0, fgy = 0, fgz = 0;
 	  for(var i = foreground.length; i--;){
-      fgx += p[foreground[i]].x;
-      fgy += p[foreground[i]].y;
-      fgz += p[foreground[i]].z;
+      fgx += p[foreground[i] % plen].x;
+      fgy += p[foreground[i] % plen].y;
+      fgz += p[foreground[i] % plen].z;
     }
     
     fgx /= foreground.length;
@@ -351,9 +379,9 @@ setInterval(function(){
     var bgx = 0, bgy = 0, bgz = 0;
     var bgl = sorted.length - foreground.length;
     for(var i = bgl; i--;){
-      bgx += p[sorted[i]].x;
-      bgy += p[sorted[i]].y;
-      bgz += p[sorted[i]].z;
+      bgx += p[sorted[i] % plen].x;
+      bgy += p[sorted[i] % plen].y;
+      bgz += p[sorted[i] % plen].z;
     }
     
     bgx /= bgl;
@@ -372,9 +400,9 @@ setInterval(function(){
     var ndz = sculpt_direction * Math.cos(theta);
     
 	  for(var i = foreground.length; i--;){
-      p[foreground[i]].x += ndx;
-      p[foreground[i]].y += ndy;
-      p[foreground[i]].z += ndz;
+      p[foreground[i] % plen].x += ndx;
+      p[foreground[i] % plen].y += ndy;
+      p[foreground[i] % plen].z += ndz;
     }
     
 
