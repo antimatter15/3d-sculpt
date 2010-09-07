@@ -153,10 +153,20 @@ if(pause) return;
 		if(p[i] && !isNaN(p[i]._x) && !isNaN(p[i]._y)){
 			
 			var lineWidth =  1/zoom * (p[i]._z) - 1;
-
+      
+      //lineWidth = (lineWidth + 2)*(lineWidth + 2) - 6;
+      
 		  if(dist(p[i]._x - mouseX, p[i]._y - mouseY) < toolsize * zoom){
-        t.strokeStyle = 'orange';
-        lineWidth *= 2;
+        if(sculpting){
+          if(sculpt_direction > 0){
+            t.strokeStyle = 'blue';
+          }else{
+            t.strokeStyle = 'red';
+          }
+        }else{
+          t.strokeStyle = 'orange';
+        }
+        //lineWidth *= 2;
         selected.push(i);
       }else{
         t.strokeStyle = "rgb(40,50,20)";
@@ -167,9 +177,11 @@ if(pause) return;
 			  t.beginPath();
 			  t.moveTo(p[i-1]._x, p[i-1]._y);
 			  
+			  t.fillRect(p[i]._x - lineWidth * 2, p[i]._y - lineWidth * 2, lineWidth * 4, lineWidth * 4);
+			  
 			  
 			  t.lineTo(p[i]._x, p[i]._y);
-			  t.lineWidth = lineWidth;
+			  t.lineWidth = lineWidth
 			
 
 			
@@ -226,6 +238,8 @@ if(pause) return;
     bgy /= bgl;
     bgz /= bgl;
     
+    //bgx=0;bgy=0;bgz=0; ////FIX THIS!
+    
     var dx = fgx - bgx, dy = fgy - bgy, dz = fgz - bgz;
     
     var theta = Math.acos(dz/Math.sqrt(dx*dx + dy*dy + dz*dz));
@@ -242,11 +256,6 @@ if(pause) return;
     }
     
 
-      
-
-    
-    
-	}
     var ml2 = Math.ceil(Math.pow(Radius * Math.PI / Res, 2));
     console.log(ml2);
     for(var i = p.length-1; i-- > 4;){
@@ -267,7 +276,15 @@ if(pause) return;
         })
       }
       
-    }
+    }  
+
+    
+    
+	}
+
+    
+    
+    
 	
 },50); 
 </script>
