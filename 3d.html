@@ -32,6 +32,14 @@ p = [];
 var backups = [];
 var current_state = 0;
 
+
+onresize = function(){
+  c.width = innerWidth;
+  c.height = innerHeight;
+  
+
+}
+
 function save(){
   var backup = [];
   var q = 1e3;
@@ -81,8 +89,11 @@ var dragX, dragY, dragging = false;
 var mouseX = 0, mouseY = 0;
 var sculpting = false;
 var sculpt_direction = 1;
+var lastmousemove = Infinity;
 
 c.onmousemove = function(e){
+  lastmousemove = +new Date;
+  
 	if(dragging){
 	  mX = e.clientX + dragX;
 	  mY = e.clientY + dragY;
@@ -183,9 +194,13 @@ var selected = [];
 
 var pause = false;
 setInterval(function(){
-if(pause) return;
+  if(pause) return;
+  
+  if(new Date - lastmousemove > 1000){
+    return;
+  }
 
-var toolsize = document.getElementById('toolsize').value;
+  var toolsize = document.getElementById('toolsize').value;
 
 
   var aY =  1e-2 * (mX - vpX), 
@@ -377,7 +392,7 @@ var toolsize = document.getElementById('toolsize').value;
     
   t.fillText(p.length + ' points '+(current_state+1)+'/'+backups.length+' undo', 20, 20);
 	
-},50); 
+},42); 
 </script>
 </body>
 </html>
