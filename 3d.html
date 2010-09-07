@@ -171,10 +171,13 @@ p = [{x:0,y:0,z:0}, {x:10,y:0,z:0}, {x:0,y:10,z:0}, {x:0,y:0,z:10}];
 
 var ResX = 60, ResY = 3, Radius = 100;
 for(var x = - Math.PI/2; x <  Math.PI/2; x += Math.PI / ResX){
-  var r =  Radius * Math.cos(x);
-  var z = Radius * Math.sin(x);
+
   console.log(r);
   for(var y = 0; y < 2 * Math.PI; y += Math.PI / r * ResY){
+    var r =  Radius * Math.cos(x + (Math.PI/ResX) * y/Math.PI/2);
+    var z = Radius * Math.sin(x + (Math.PI/ResX) * y/Math.PI/2);
+  
+  
     var a = r * Math.cos(y);
     var b = r * Math.sin(y);
     p.push({
