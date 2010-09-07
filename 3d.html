@@ -93,8 +93,9 @@ function dist(dx, dy){
 var selected = [];
 var toolsize = 20;
 
-
+var pause = false;
 setInterval(function(){
+if(pause) return;
   var aY =  1e-2 * (mX - vpX), 
 			cY = cos(aY), 
 			sY = sin(aY),
@@ -240,7 +241,33 @@ setInterval(function(){
       p[foreground[i]].z += ndz;
     }
     
+
+      
+
+    
+    
 	}
+    var ml2 = Math.ceil(Math.pow(Radius * Math.PI / Res, 2));
+    console.log(ml2);
+    for(var i = p.length-1; i-- > 4;){
+      var lp = p[i+1];
+      var cp = p[i];
+      var dx = lp.x - cp.x;
+      var dy = lp.y - cp.y;
+      var dz = lp.z - cp.z;
+      var d2 = dx * dx + dy* dy + dz * dz;
+      if(d2 > ml2){
+        
+        //Interpolate and subdivide.
+        
+        p.splice(i + 1, 0, {
+          x: (lp.x + cp.x) /2,
+          y: (lp.y + cp.y) /2,
+          z: (lp.z + cp.z) /2
+        })
+      }
+      
+    }
 	
 },50); 
 </script>
