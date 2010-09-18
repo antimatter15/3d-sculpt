@@ -116,7 +116,7 @@ c.onmousemove = function(e){
 //90 deg = 157 ~ pi/2
 
 c.onmousedown = function(e){
-  if(e.button == 1){
+  if(e.button == 1 || e.shiftKey){
     dragging = true;
     dragX = mX - e.clientX;
     dragY =  mY - e.clientY;
